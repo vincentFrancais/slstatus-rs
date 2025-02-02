@@ -1,0 +1,17 @@
+[package]
+name = "slstatus-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.95"
+argh = "0.1.13"
+chrono = "0.4.39"
+dbus = "0.9.7"
+x11rb = { version = "0.13.1", features = ["xkb", "allow-unsafe-code"] }
+
+[profile.release]
+strip = true
+lto = true
+opt-level = "z"
+
