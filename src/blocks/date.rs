@@ -1,19 +1,13 @@
-use super::{Block, Block2, BlockComponent};
-
-pub fn datetime_block() -> Block {
-    Block {
-        func: Box::new(|| chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string()),
-    }
-}
+use super::{Block, BlockComponent};
 
 struct DateTimeComponent {}
 
 impl BlockComponent for DateTimeComponent {
-    fn call(&self) -> String {
+    fn call(&mut self) -> String {
         chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string()
     }
 }
 
-fn datetime_block2() -> Block2 {
-    Block2::new(DateTimeComponent {})
+pub fn datetime_block() -> Block {
+    Block::new(DateTimeComponent {})
 }

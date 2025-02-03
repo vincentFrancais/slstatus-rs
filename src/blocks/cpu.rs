@@ -3,9 +3,7 @@ use std::{
     io::{self, Read},
 };
 
-use super::Block;
-
-static mut PREV_CPU_TIMES: [f64; 7] = [0.0; 7];
+use super::{Block, BlockComponent};
 
 fn read_cpu_times() -> io::Result<[f64; 7]> {
     let mut file = File::open("/proc/stat")?;
@@ -33,38 +31,48 @@ fn read_cpu_times() -> io::Result<[f64; 7]> {
     ))
 }
 
-fn cpu_perc() -> Option<f64> {
-    let a = read_cpu_times().unwrap();
+// pub fn cpu_perc_block() -> Block {
+//     Block {
+//         func: Box::new(|| {
+//             let perc = cpu_perc().unwrap_or(0.0).round() as u16;
+//             perc.to_string()
+//         }),
+//     }
+// }
 
-    // TODO: remove this unsafe
-    let usage = unsafe {
-        let b = PREV_CPU_TIMES;
-        if b[0] == 0.0 {
-            PREV_CPU_TIMES = a; // Store first measurement
-            return None;
-        }
+#[derive(Default)]
+struct CpuPercentage {
+    prev: [f64; 7],
+}
+
+impl CpuPercentage {
+    fn new() -> Self {
+        let stats = read_cpu_times().unwrap();
+
+        Self { prev: stats }
+    }
+
+    fn get(&mut self) -> f64 {
+        let a = read_cpu_times().unwrap();
+        let b = self.prev;
 
         let sum: f64 = (b.iter().sum::<f64>()) - (a.iter().sum::<f64>());
-        if sum == 0.0 {
-            return None;
-        }
 
         let used: f64 =
             ((b[0] + b[1] + b[2] + b[5] + b[6]) - (a[0] + a[1] + a[2] + a[5] + a[6])) / sum;
 
-        PREV_CPU_TIMES = a; // Update previous values
+        self.prev = a; // Update previous values
 
         used * 100.0
-    };
+    }
+}
 
-    Some(usage)
+impl BlockComponent for CpuPercentage {
+    fn call(&mut self) -> String {
+        (self.get().round() as u64).to_string()
+    }
 }
 
 pub fn cpu_perc_block() -> Block {
-    Block {
-        func: Box::new(|| {
-            let perc = cpu_perc().unwrap_or(0.0).round() as u16;
-            perc.to_string()
-        }),
-    }
+    Block::new(CpuPercentage::new())
 }

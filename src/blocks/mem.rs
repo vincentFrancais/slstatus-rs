@@ -3,7 +3,7 @@ use std::{
     io::{self, BufRead},
 };
 
-use super::Block;
+use super::{Block, BlockComponent};
 
 fn ram_perc() -> i32 {
     let file = fs::File::open("/proc/meminfo").unwrap();
@@ -31,8 +31,13 @@ fn ram_perc() -> i32 {
     (100 * used) / total
 }
 
-pub fn ram_perc_block() -> Block {
-    Block {
-        func: Box::new(|| ram_perc().to_string()),
+struct RamPercentage {}
+
+impl BlockComponent for RamPercentage {
+    fn call(&mut self) -> String {
+        ram_perc().to_string()
     }
+}
+pub fn ram_perc_block() -> Block {
+    Block::new(RamPercentage {})
 }

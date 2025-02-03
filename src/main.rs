@@ -65,10 +65,10 @@ fn get_root_window(conn: &RustConnection) -> u32 {
     screen.root
 }
 
-fn format_blocks(blocks: &[BlockArg]) -> String {
+fn format_blocks(blocks: &mut [BlockArg]) -> String {
     // let res = String::new();
     blocks
-        .iter()
+        .iter_mut()
         .map(|(block, fmt)| fmt.replace("{}", &block.show()))
         .collect::<Vec<String>>()
         .join("")
@@ -82,7 +82,7 @@ fn main() {
     let (conn, _screen_num) = RustConnection::connect(None).unwrap();
     let root = get_root_window(&conn);
 
-    let args = [
+    let mut args = [
         (mpris_block(), "{} | "),
         (keymap_block(), "{} | "),
         (battery_perc_block("BAT0"), "BAT: {}"),
@@ -94,7 +94,7 @@ fn main() {
 
     loop {
         let start = Instant::now();
-        let r = format_blocks(&args);
+        let r = format_blocks(&mut args);
 
         if cli.sflag {
             println!("{}", r);
